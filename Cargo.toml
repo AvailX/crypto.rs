@@ -20,7 +20,7 @@ rustdoc-args = [ "--cfg", "docsrs" ]
 name = "crypto"
 
 [features]
-default = [ ]
+default = ["hmac", "sha", "zeroize", "aleo", "slip10" ]
 std = [ "k256?/std", "serde?/std" ]
 aes-cbc = [
   "dep:aes",
@@ -95,6 +95,7 @@ serde = [
   "k256?/serde",
   "k256?/pem"
 ]
+aleo = [ "snarkvm-console" ]
 
 [dependencies]
 aead = { version = "0.5", optional = true, default-features = false }
@@ -129,6 +130,7 @@ scrypt = { version = "0.11", optional = true, default-features = false }
 hkdf = { version = "0.12", optional = true, default-features = false }
 base64 = { version = "0.21", optional = true, default-features = false }
 k256 = { version = "0.13", optional = true, default-features = false, features = [ "ecdsa" ] }
+snarkvm-console = { version = "0.16.19", optional = true }
 
 [target."cfg(not(target_family = \"wasm\"))".dependencies]
 cpufeatures = { version = "0.2", optional = true, default-features = false }

@@ -62,6 +62,39 @@ mod hazmat {
 
 pub use hazmat::{Derivable, IsPublicKey, IsSecretKey, ToChain, ToPublic, WithSegment};
 
+//#[cfg(feature = "aleo")]
+pub mod aleo_testnet {
+    use super::{hazmat::*, Hardened};
+    use snarkvm_console::{account::{Address as AleoAddress, PrivateKey as AleoPrivateKey, ViewKey as AleoViewKey}, network::Testnet3, program::{FromBytes, Identifier, ToBytes}};
+
+    impl Sealed for AleoPrivateKey<Testnet3> {}
+
+    impl Derivable for AleoPrivateKey<Testnet3> {
+        fn is_key_valid(key_bytes: &[u8; 33]) -> bool {
+            AleoPrivateKey::<Testnet3>::from_bytes_le(key_bytes).is_ok()
+        }
+
+        fn to_key(key_bytes: &[u8; 33]) -> Self {
+            AleoPrivateKey::<Testnet3>::from_bytes_le(key_bytes).expect("valid Aleo private key")
+        }
+
+        fn add_key(key_bytes: &mut [u8; 33], parent_key: &[u8; 33]) -> bool {
+            true
+        }
+    }
+
+    impl IsSecretKey for AleoPrivateKey<Testnet3> {
+        const SEEDKEY: &'static [u8] = b"Aleo seed";
+        type PublicKey = AleoAddress<Testnet3>;
+    }
+
+    impl WithSegment<Hardened> for AleoPrivateKey<Testnet3> {
+        fn calc_data(key_bytes: &[u8; 33], _segment: Hardened) -> [u8; 33] {
+            *key_bytes
+        }
+    }
+}
+
 #[cfg(feature = "ed25519")]
 pub mod ed25519 {
     use super::{hazmat::*, Hardened};
