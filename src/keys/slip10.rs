@@ -71,7 +71,9 @@ pub mod aleo_testnet {
 
     impl Derivable for AleoPrivateKey<Testnet3> {
         fn is_key_valid(key_bytes: &[u8; 33]) -> bool {
-            key_bytes[0] == 0
+            debug_assert_eq!(0, key_bytes[0]);
+            let sk_bytes: &[u8; 32] = unsafe { &*(key_bytes[1..].as_ptr() as *const [u8; 32]) };
+            AleoPrivateKey::<Testnet3>::from_bytes_le(sk_bytes).is_ok()
         }
 
         fn to_key(key_bytes: &[u8; 33]) -> Self {
