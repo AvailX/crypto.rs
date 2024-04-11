@@ -66,6 +66,7 @@ pub use hazmat::{Derivable, IsPublicKey, IsSecretKey, ToChain, ToPublic, WithSeg
 pub mod aleo_testnet {
     use super::{hazmat::*, Hardened};
     use snarkvm_console::{account::{Address as AleoAddress, PrivateKey as AleoPrivateKey, ViewKey as AleoViewKey}, network::Testnet3, program::{FromBytes, Identifier, ToBytes}};
+    use snarkvm_console::prelude::*;
 
     impl Sealed for AleoPrivateKey<Testnet3> {}
 
@@ -73,13 +74,17 @@ pub mod aleo_testnet {
         fn is_key_valid(key_bytes: &[u8; 33]) -> bool {
             debug_assert_eq!(0, key_bytes[0]);
             let sk_bytes: &[u8; 32] = unsafe { &*(key_bytes[1..].as_ptr() as *const [u8; 32]) };
-            AleoPrivateKey::<Testnet3>::from_bytes_le(sk_bytes).is_ok()
+
+            let field = <Testnet3 as Environment>::Field::from_bytes_le_mod_order(sk_bytes);
+            AleoPrivateKey::<Testnet3>::try_from(FromBytes::read_le(&*field.to_bytes_le().unwrap()).unwrap()).is_ok()
+          //  AleoPrivateKey::<Testnet3>::from_bytes_le(sk_bytes).is_ok()
         }
 
         fn to_key(key_bytes: &[u8; 33]) -> Self {
             debug_assert_eq!(0, key_bytes[0]);
             let sk_bytes: &[u8; 32] = unsafe { &*(key_bytes[1..].as_ptr() as *const [u8; 32]) };
-            AleoPrivateKey::<Testnet3>::from_bytes_le(sk_bytes).unwrap()
+            let field = <Testnet3 as Environment>::Field::from_bytes_le_mod_order(sk_bytes);
+            AleoPrivateKey::<Testnet3>::try_from(FromBytes::read_le(&*field.to_bytes_le().unwrap()).unwrap()).unwrap()
         }
 
         fn add_key(key_bytes: &mut [u8; 33], parent_key: &[u8; 33]) -> bool {
