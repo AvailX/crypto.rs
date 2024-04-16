@@ -130,7 +130,7 @@ scrypt = { version = "0.11", optional = true, default-features = false }
 hkdf = { version = "0.12", optional = true, default-features = false }
 base64 = { version = "0.21", optional = true, default-features = false }
 k256 = { version = "0.13", optional = true, default-features = false, features = [ "ecdsa" ] }
-snarkvm-console = { version = "0.16.19", optional = true }
+snarkvm-console = { git = "https://github.com/AvailX/snarkVM", optional = true }
 
 [target."cfg(not(target_family = \"wasm\"))".dependencies]
 cpufeatures = { version = "0.2", optional = true, default-features = false }

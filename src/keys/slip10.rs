@@ -65,26 +65,25 @@ pub use hazmat::{Derivable, IsPublicKey, IsSecretKey, ToChain, ToPublic, WithSeg
 //#[cfg(feature = "aleo")]
 pub mod aleo_testnet {
     use super::{hazmat::*, Hardened};
-    use snarkvm_console::{account::{Address as AleoAddress, PrivateKey as AleoPrivateKey, ViewKey as AleoViewKey}, network::Testnet3, program::{FromBytes, Identifier, ToBytes}};
+    use snarkvm_console::{account::{Address as AleoAddress, PrivateKey as AleoPrivateKey}, network::Network, program::{FromBytes, ToBytes}};
     use snarkvm_console::prelude::*;
 
-    impl Sealed for AleoPrivateKey<Testnet3> {}
+    impl<N:Network> Sealed for AleoPrivateKey<N> {}
 
-    impl Derivable for AleoPrivateKey<Testnet3> {
+    impl<N:Network> Derivable for AleoPrivateKey<N> {
         fn is_key_valid(key_bytes: &[u8; 33]) -> bool {
             debug_assert_eq!(0, key_bytes[0]);
             let sk_bytes: &[u8; 32] = unsafe { &*(key_bytes[1..].as_ptr() as *const [u8; 32]) };
 
-            let field = <Testnet3 as Environment>::Field::from_bytes_le_mod_order(sk_bytes);
-            AleoPrivateKey::<Testnet3>::try_from(FromBytes::read_le(&*field.to_bytes_le().unwrap()).unwrap()).is_ok()
-          //  AleoPrivateKey::<Testnet3>::from_bytes_le(sk_bytes).is_ok()
+            let field = <N as Environment>::Field::from_bytes_le_mod_order(sk_bytes);
+            AleoPrivateKey::<N>::try_from(FromBytes::read_le(&*field.to_bytes_le().unwrap()).unwrap()).is_ok()
         }
 
         fn to_key(key_bytes: &[u8; 33]) -> Self {
             debug_assert_eq!(0, key_bytes[0]);
             let sk_bytes: &[u8; 32] = unsafe { &*(key_bytes[1..].as_ptr() as *const [u8; 32]) };
-            let field = <Testnet3 as Environment>::Field::from_bytes_le_mod_order(sk_bytes);
-            AleoPrivateKey::<Testnet3>::try_from(FromBytes::read_le(&*field.to_bytes_le().unwrap()).unwrap()).unwrap()
+            let field = <N as Environment>::Field::from_bytes_le_mod_order(sk_bytes);
+            AleoPrivateKey::<N>::try_from(FromBytes::read_le(&*field.to_bytes_le().unwrap()).unwrap()).unwrap()
         }
 
         fn add_key(key_bytes: &mut [u8; 33], parent_key: &[u8; 33]) -> bool {
@@ -92,12 +91,12 @@ pub mod aleo_testnet {
         }
     }
 
-    impl IsSecretKey for AleoPrivateKey<Testnet3> {
+    impl<N:Network> IsSecretKey for AleoPrivateKey<N> {
         const SEEDKEY: &'static [u8] = b"Aleo seed";
-        type PublicKey = AleoAddress<Testnet3>;
+        type PublicKey = AleoAddress<N>;
     }
 
-    impl WithSegment<Hardened> for AleoPrivateKey<Testnet3> {
+    impl<N:Network> WithSegment<Hardened> for AleoPrivateKey<N> {
         fn calc_data(key_bytes: &[u8; 33], _segment: Hardened) -> [u8; 33] {
             *key_bytes
         }
