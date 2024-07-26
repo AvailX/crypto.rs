@@ -86,7 +86,7 @@ pub mod aleo_testnet {
             AleoPrivateKey::<N>::try_from(FromBytes::read_le(&*field.to_bytes_le().unwrap()).unwrap()).unwrap()
         }
 
-        fn add_key(key_bytes: &mut [u8; 33], parent_key: &[u8; 33]) -> bool {
+        fn add_key(_key_bytes: &mut [u8; 33], _parent_key: &[u8; 33]) -> bool {
             true
         }
     }
