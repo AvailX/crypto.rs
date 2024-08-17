@@ -92,13 +92,51 @@ pub mod aleo_testnet {
     }
 
     impl<N:Network> IsSecretKey for AleoPrivateKey<N> {
-        const SEEDKEY: &'static [u8] = b"Aleo seed";
+        const SEEDKEY: &'static [u8] = b"bls12_377 seed";
         type PublicKey = AleoAddress<N>;
     }
 
     impl<N:Network> WithSegment<Hardened> for AleoPrivateKey<N> {
         fn calc_data(key_bytes: &[u8; 33], _segment: Hardened) -> [u8; 33] {
             *key_bytes
+        }
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+        use crate::keys::{bip39::{mnemonic_to_seed, Mnemonic, Passphrase}, slip10::{Seed, Hardened}};
+        use snarkvm_console::network::TestnetV0;
+        use snarkvm_console::account::{PrivateKey, Address};
+
+        #[test]
+        fn test_aleo_slip10() {
+            type N = TestnetV0;
+
+            let mnemonic = Mnemonic::from("exercise suggest fence speed spring silly smoke gauge october wet pony rookie slow curious assume earth drama truth castle put blanket happy train identify");
+            let passphrase = Passphrase::new();
+            let seed = mnemonic_to_seed(mnemonic.deref(), passphrase.deref());
+            println!("BIP39 Seed: {:?}", hex::encode(seed.bytes()));
+
+            let slip10seed = Seed::from_bytes(seed.bytes());
+            println!("SLIP10 Seed: {:?}", hex::encode(slip10seed.as_ref()));
+
+            let master_key = slip10seed.to_master_key::<AleoPrivateKey<N>>();
+            println!("Master Key: {:?}", hex::encode(master_key.key_bytes()));
+
+            // Derivation path = m/44'/0'/0'/0
+            let path: Vec<u32> = vec![44 + 0x80000000, 0 + 0x80000000, 0 + 0x80000000, 0 + 0x80000000];
+            let hardened = path.into_iter().map(|x| x.try_into()).collect::<Result<Vec<Hardened>, _>>().unwrap();
+            let child_key = master_key.derive(hardened.into_iter());
+            println!("Child Key: {:?}", hex::encode(child_key.key_bytes()));
+
+            // Cut off the first extra byte for hardened keys
+            let field = <N as Environment>::Field::from_bytes_le_mod_order(&child_key.key_bytes()[1..]);
+            let private_key = PrivateKey::<N>::try_from(FromBytes::read_le(&*field.to_bytes_le().unwrap()).unwrap()).unwrap();
+            println!("Private Key: {:?}", private_key);
+
+            let address = Address::<N>::try_from(&private_key).unwrap();
+            println!("Address: {:?}", address);
         }
     }
 }
