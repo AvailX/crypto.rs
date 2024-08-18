@@ -140,7 +140,7 @@ pub mod aleo_testnet {
 //             println!("Address: {:?}", address);
 //         }
 //     }
-// }
+}
 
 #[cfg(feature = "ed25519")]
 pub mod ed25519 {
